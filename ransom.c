@@ -8,91 +8,111 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* readline();
-char** split_string(char*);
-// A linked list node
-struct Node
-{
-char* data;
-struct Node *next;
+char *readline();
+char **split_string(char*);
+
+struct Node{
+	char *data;
+	struct Node *next;
 };
-
-
-void insert(struct Node** head, char* new_data)//function to add nodes
-{
-	struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
-	struct Node *last = *head;// Temporarily store the last node
-	new_node->data = new_data;
+/**
+ * @brief The insert function puts data into a node in the linked list
+ * @param the "head" pointer points to the beginning of the linked list
+ * @param the "new_data" pointer points to the location of the data to be input
+ * @return void
+ * @note creates space for new node and then fills it
+ */
+void insert(struct Node **head, char *word){
+	struct Node *new_node = (struct Node*) malloc(sizeof(struct Node));
+	struct Node *last = *head;
+	new_node->data = word;
 	new_node->next = NULL;
-	if (*head == NULL) // check if its the first node being placed
-	{
-	*head = new_node;
-	return;
+	if (*head == NULL){
+		*head = new_node;
+		return;
 	}
 	while (last->next != NULL)
-	last = last->next;
-	last->next = new_node;
-	return;
+		last = last->next;
+		last->next = new_node;
+		return;
+}
+/**
+ * @brief This function removes and frees all of the nodes from the linked list
+ * @param the "head" pointer points to the beginning of the linked list
+ * @return void
+ * @note cleans up linked list
+ */
+void rmv_nodes(struct Node **head){
+   struct Node *current = *head;
+   struct Node *next;
+   while (current != NULL){
+       next = current->next;
+       free(current);
+       current = next;
+   }
+   *head = NULL;
 }
 
-// checks the word from note with every node in magazine
-int crosschecker(struct Node *node,char** note)
-{
-
-while (node != NULL)
-{
-	if (0 == (strcmp(node->data,*(note)))){
-		node->data = "@";// we dont want to use this word again so we rewrite it to something note cant be
-		//printf("%s",*note);
-		return 1; //true the word is in the magazine
+/**
+ * @brief compares the note word with each magazine word and crosses out matches
+ * @param node points to the beginning of the linked list
+ * @param note points to the word that we are looking for in the magazine
+ * @return 1 when the word is found and 0 if it is not
+ * @note We can add notes like this
+ */
+int cross_checker(struct Node *node,char **note){
+	while (node != NULL)
+	{
+		if (0 == (strcmp(node->data,*(note)))){
+			node->data = "@";
+			return 1;
+		}
+		node = node->next;
 	}
-	node = node->next;
-}
-return 0;
+	return 0;
 }
 
 // Complete the checkMagazine function below.
-void checkMagazine(int magazine_count, char** magazine, int note_count, char** note) {
-	struct Node* head = NULL;
+void checkMagazine(int magazine_count, char** magazine, int note_count, char** note){
+	struct Node *head = NULL;
 	for(int i=0;i<magazine_count;i++){
-	insert(&head, magazine[i]);// put the magazine array into linked list form
+		insert(&head, magazine[i]);/*puteachelement of magazine into linklist*/
 	}
-
-int i =0;
-for (i; i<note_count;i++){
-	if (!(crosschecker(head,note+i))){
-	printf("No"); // do the no answer because got to the end of the magazine and found no matches
-	break;
+	int i =0;
+	for (i; i<note_count;i++){
+		if (!(cross_checker(head,note+i))){
+			printf("No");
+			rmv_nodes(&head);
+			break;
+		}
 	}
-}
-if (i == note_count){ // must be true if gotten to this point
-	printf("Yes"); // do the yes answer
-	}
-
-
+	if (i == note_count){
+		printf("Yes");
+		rmv_nodes(&head);
+		}
 }
 int main()
 {
-    char** mn = split_string(readline()); // What does this do?
+    char** mn = split_string(readline());
 
     char* m_endptr;
     char* m_str = mn[0];
-    int m = strtol(m_str, &m_endptr, 10); //counts the number of words in the magazine
+    int m = strtol(m_str, &m_endptr, 10);
 
-    if (m_endptr == m_str || *m_endptr != '\0') { exit(EXIT_FAILURE); } // end is the beggining or end doesnt end with enter key
+    if (m_endptr == m_str || *m_endptr != '\0') { exit(EXIT_FAILURE); }
 
-    char* n_endptr; // what is n and why is it from the second element of the split string
+    char* n_endptr;
     char* n_str = mn[1];
     int n = strtol(n_str, &n_endptr, 10);
 
     if (n_endptr == n_str || *n_endptr != '\0') { exit(EXIT_FAILURE); }
 
-    char** magazine_temp = split_string(readline());// temporary and same as mn
+    char** magazine_temp = split_string(readline());
 
-    char** magazine = malloc(m * sizeof(char*)); //define memory to store char size m times
+    char** magazine = malloc(m * sizeof(char*));
 
     for (int i = 0; i < m; i++) {
-        char* magazine_item = *(magazine_temp + i); // store pointers of each item (in the magazine) into the magazine array
+        char* magazine_item = *(magazine_temp + i);
         *(magazine + i) = magazine_item;
     }
 
@@ -102,7 +122,7 @@ int main()
 
     char** note = malloc(n * sizeof(char*));
 
-    for (int i = 0; i < n; i++) { // do the same as the magazine just for the note string now
+    for (int i = 0; i < n; i++) {
         char* note_item = *(note_temp + i);
 
         *(note + i) = note_item;
@@ -122,19 +142,19 @@ char* readline() {
 
     while (true) {
         char* cursor = data + data_length;
-        char* line = fgets(cursor, alloc_length - data_length, stdin); //puts a word in of max size 1024
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
 
         if (!line) { 
             break;
         }
 
-        data_length += strlen(cursor); // checks how large the word was
+        data_length += strlen(cursor);
 
         if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
             break;
         }
 
-        alloc_length <<= 1; // shift the alocation length over 1 since already inputted a word
+        alloc_length <<= 1;
 
         data = realloc(data, alloc_length);
 
@@ -153,10 +173,10 @@ char* readline() {
         data[data_length] = '\0';
     }
 
-    return data; // one whole sentence
+    return data;
 }
 
-char** split_string(char* str) {// not so sure but assume splits up spaces into array slots
+char** split_string(char* str) {
     char** splits = NULL;
     char* token = strtok(str, " ");
 
